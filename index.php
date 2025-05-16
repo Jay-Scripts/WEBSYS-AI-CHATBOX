@@ -20,18 +20,32 @@ if (isset($_POST['submit'])) {
   } else {
     $userName = sanitizeInput($_POST['userName']);
     // FOR CHECKING IF userName IS NOT LETTERS, NUMBERS, AND SPACES ONLY THEN DISPLAY ERROR
-    if (!preg_match('/^[a-zA-Z\s1-9]+$/', $userName)) {
+    if (!preg_match('/^[a-zA-Z\s0-9]+$/', $userName)) {
       $errors['userName'] = 'Please enter a valid User name!';
     }
   }
 
-    if (empty($_POST['password'])) {
+  if (empty($_POST['password'])) {
     $errors['password'] = 'A password is Required!';
   } else {
     $password = sanitizeInput($_POST['password']);
-    // FOR CHECKING IF PASSWORD IS NOT LETTERS AND SPACES ONLY THEN DISPLAY ERROR
-    if (!preg_match('/^[a-zA-Z\s1-9]+$/', $password)) {
+    // FOR CHECKING IF PASSWORD IS NOT LETTERS, NUMBERS, AND SPACES ONLY THEN DISPLAY ERROR
+    if (!preg_match('/^[a-zA-Z\s0-9]+$/', $password)) {
       $errors['password'] = 'Password must be letters, numbers, and spaces only!';
+    }
+  }
+
+  // If no validation errors, check credentials in database
+  if (empty($errors['userName']) && empty($errors['password'])) {
+    $query = "SELECT * FROM users WHERE user_name = ? AND password = ?";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "ss", $userName, $password);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    if (mysqli_num_rows($result) > 0) {
+      header("Location: profilePage.html");
+      exit();
     }
   }
 
